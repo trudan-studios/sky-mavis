@@ -5,7 +5,7 @@ This is a client for the Mavis tracking API. This library uses the same Event mo
 Initialise the `MavisTracking` instance
 ```typescript
 import MavisTracking from "@kurorobeasts/mavis-app-tracking";
-// This will start a session and send events to the server every 1.5 seconds
+// This will start a session and send events to the server every 10 seconds by default.
 // As long as this instance is alive, it will keep sending events to the server unless explicitely stopped.
 const tracking = new MavisTracking(API_KEY);
 ```
