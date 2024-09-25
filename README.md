@@ -7,7 +7,7 @@ Initialise the `MavisTracking` instance
 import MavisTracking from "@kurorobeasts/mavis-app-tracking";
 // This will start a session and send events to the server every 1.5 seconds
 // As long as this instance is alive, it will keep sending events to the server unless explicitely stopped.
-const tracking = new MavisTracking(API_KEY, { API_URL, flushInterval: 1500 });
+const tracking = new MavisTracking(API_KEY);
 ```
 Now you're ready to start sending events to the server. But first you need to identify the user in order to get proper Events data.
 **Note:** If no `API_URL` is provided, the library will use the default Mavis tracking API URL.
