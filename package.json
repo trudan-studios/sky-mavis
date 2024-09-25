@@ -1,6 +1,6 @@
 {
-  "name": "app-tracking",
-  "version": "0.0.0",
+  "name": "@kurorobeasts/mavis-app-tracking",
+  "version": "0.0.4",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "",
@@ -26,5 +26,9 @@
     "bun-plugin-dts": "^0.2.1",
     "@types/bun": "^1.0.0",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@types/uuid": "^10.0.0",
+    "uuid": "^10.0.0"
   }
 }
