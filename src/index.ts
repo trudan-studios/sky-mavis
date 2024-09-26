@@ -56,6 +56,12 @@ export interface TrackEvent extends EventBase {
 }
 
 type Event = IdentifyEvent | ScreenEvent | TrackEvent;
+type MavisTrackingOptions = {
+    apiUrl?: string;
+    flushInterval?: number;
+    enableHeartbeat?: boolean;
+    heartbeatInterval?: number;
+};
 
 export class MavisTracking {
     private apiKey: string;
@@ -66,10 +72,12 @@ export class MavisTracking {
     private queue: Event[];
     private flushInterval: number;
     private flushTimeout: ReturnType<typeof setTimeout> | null;
+    private heartbeatInterval: number;
+    private heartbeatIntervalId: ReturnType<typeof setInterval> | null;
     private userId: string | null;
     private roninAddress: string;
 
-    constructor(apiKey: string, options: { apiUrl?: string, flushInterval?: number } = {}) {
+    constructor(apiKey: string, options: MavisTrackingOptions = {}) {
         this.apiKey = apiKey;
         this.apiUrl = options.apiUrl || 'https://x.skymavis.com/track';
         this.sessionId = uuidv4();
@@ -78,8 +86,15 @@ export class MavisTracking {
         this.queue = [];
         this.flushInterval = options.flushInterval || 10000; // 10 seconds default
         this.flushTimeout = null;
+        this.heartbeatInterval = options.heartbeatInterval || 30000; // 30 seconds default
+        this.heartbeatIntervalId = null;
         this.userId = null;
         this.roninAddress = ADDRESS_ZERO;
+
+        if (options.enableHeartbeat !== false) // Default to true
+        {
+            this.startHeartbeat();
+        }
     }
 
     private createBaseEvent(): EventBase {
@@ -102,9 +117,63 @@ export class MavisTracking {
         this.scheduleFlush();
     }
 
+    private heartbeat(): void {
+        const heartbeatEvent: TrackEvent = {
+            ...this.createBaseEvent(),
+            type: 'track',
+            data: {
+                ...this.createBaseEvent().data,
+                action: 'heartbeat'
+            }
+        };
+        this.sendEvent(heartbeatEvent);
+    }
+
+    private startHeartbeat(): void {
+        this.heartbeat(); // Send initial heartbeat
+        this.heartbeatIntervalId = setInterval(() => this.heartbeat(), this.heartbeatInterval);
+    }
+
     private scheduleFlush(): void {
         if (this.flushTimeout === null) {
             this.flushTimeout = setTimeout(() => this.flush(), this.flushInterval);
+        }
+    }
+
+    private async postEvents(events: Event[]): Promise<void> {
+        const headers = new Headers({
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${btoa(this.apiKey + ':')}`
+        });
+
+        const body = JSON.stringify({
+            api_key: this.apiKey,
+            events: events
+        });
+
+        const response = await fetch(this.apiUrl, {
+            method: 'POST',
+            headers: headers,
+            body: body
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    }
+
+    /**
+     * Send an event to the tracking server. This method is intended for internal use only.
+     * For example to send heartbeats or to force send an event (rare case).
+     * @param event
+     * @private
+     */
+    private async sendEvent(event: Event): Promise<void> {
+        try {
+            await this.postEvents([event]);
+        } catch (error) {
+            console.error('Failed to send event:', error);
+            // We're not re-queuing the event here because it's not a common case.
         }
     }
 
@@ -115,23 +184,7 @@ export class MavisTracking {
         this.flushTimeout = null;
 
         try {
-            const headers = new Headers({
-                'Content-Type': 'application/json',
-                'Authorization': `Basic ${btoa(this.apiKey + ':')}`
-            });
-
-            const body = JSON.stringify({
-                api_key: this.apiKey,
-                events: events
-            });
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                headers: headers,
-                body: body
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            await this.postEvents(events);
         } catch (error) {
             console.error('Failed to send events:', error);
             // Re-queue failed events
@@ -142,7 +195,7 @@ export class MavisTracking {
     identify(userId: string,
              roninAddress: string,
              userProperties: IdentifyEvent["data"]["user_properties"],
-             deviceProperties: PlatformProperties = { platform_name: "unknown" }
+             deviceProperties: PlatformProperties = {platform_name: "unknown"}
     ): void {
         this.userId = userId;
         this.roninAddress = roninAddress || ADDRESS_ZERO;
@@ -173,6 +226,7 @@ export class MavisTracking {
     }
 
     track(action: string, actionProperties?: TrackEvent["data"]["action_properties"]): void {
+        console.log('Tracking action:', action, actionProperties);
         const event: TrackEvent = {
             ...this.createBaseEvent(),
             type: 'track',
@@ -196,6 +250,9 @@ export class MavisTracking {
     async shutdown(): Promise<void> {
         if (this.flushTimeout) {
             clearTimeout(this.flushTimeout);
+        }
+        if (this.heartbeatIntervalId) {
+            clearInterval(this.heartbeatIntervalId);
         }
         await this.flush();
     }
