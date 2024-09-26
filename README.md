@@ -6,20 +6,20 @@ Initialise the `MavisTracking` instance
 ```typescript
 import MavisTracking from "@kurorobeasts/mavis-app-tracking";
 // This will start a session and send events to the server every 10 seconds by default.
-// As long as this instance is alive, it will keep sending events to the server unless explicitely stopped.
+// As long as this instance is alive, it will keep sending queued events to the server unless explicitely stopped.
 const tracking = new MavisTracking(API_KEY);
 ```
 Now you're ready to start sending events to the server. But first you need to identify the user in order to get proper Events data.
+
 **Note:** If no `API_URL` is provided, the library will use the default Mavis tracking API URL.
 ### Identifying the user
 ```typescript
 tracking.identify("user_id", "ronin_address", { key: "value" });
-// you can also add a third parameter for platform properties
-tracking.identify("user_id", "ronin_address", { key: "value" }, { platform_name: "web" });
+// you can also add a fourth parameter for platform properties
+tracking.identify("user_id", "ronin_address", { username: "JohnDoe" }, { platform_name: "Firefox" });
 ````
 
 ### Sending events
-
 ```typescript
 tracking.track("event_name", { key: "value" });
 ```
@@ -41,7 +41,18 @@ But remember, if you need to start tracking again, you need to create a new inst
 ```typescript
 await tracking.shutdown();
 ```
-To see some examples, check the tests.
+
+### Heartbeats
+In order to track sessions duration, you can send heartbeats. Mavis [recommends](https://docs.skymavis.com/mavis/app-tracking/reference/milestones#milestone-1-session-duration) sending heartbeats every 30 seconds or less. This library sends heartbeats every 30 seconds by default.
+```typescript
+// To change the frequency of the heartbeats, you can pass the interval in milliseconds in the constructor.
+const tracking = new MavisTracking(API_KEY, {
+    heartbeatInterval: 10000, // 10 seconds
+    // you can also disable heartbeats
+    // enableHeartbeat: false
+});
+```
+TODO: Add more examples
 ## License
 
 MIT
