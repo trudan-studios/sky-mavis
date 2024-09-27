@@ -31,7 +31,7 @@ tracking.screen("screen_name", { key: "value" });
 ### Changing session
 If you need to start a new session, you can reset the session and identify the user again.
 ```typescript
-tracking.ResetSession();
+tracking.resetSession();
 tracking.identify("new_user_id", "new_user_ronin_address", { key: "value"});
 ```
 **Note:** All previous session events will be sent to the server since they're already in the queue. New queued events will be linked to the new session.
@@ -42,15 +42,15 @@ But remember, if you need to start tracking again, you need to create a new inst
 await tracking.shutdown();
 ```
 
-### Heartbeats
-In order to track sessions duration, you can send heartbeats. Mavis [recommends](https://docs.skymavis.com/mavis/app-tracking/reference/milestones#milestone-1-session-duration) sending heartbeats every 30 seconds or less. This library sends heartbeats every 30 seconds by default.
+### Session duration
+Heartbeats are automatically sent to track the user session. Mavis [recommends](https://docs.skymavis.com/mavis/app-tracking/reference/milestones#milestone-1-session-duration) sending heartbeats every 30 seconds or less. This library sends heartbeats every 30 seconds by default.
 ```typescript
 // To change the frequency of the heartbeats, you can pass the interval in milliseconds in the constructor.
-const tracking = new MavisTracking(API_KEY, {
-    heartbeatInterval: 10000, // 10 seconds
-    // you can also disable heartbeats
-    // enableHeartbeat: false
-});
+const tracking = new MavisTracking(API_KEY, { heartbeatInterval: 10000 }); // 10 seconds
+```
+You can disable heartbeats like this:
+```typescript
+const tracking = new MavisTracking(API_KEY, { enableHeartbeat: false });
 ```
 TODO: Add more examples
 ## License
