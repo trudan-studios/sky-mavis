@@ -43,14 +43,13 @@ await tracking.shutdown();
 ```
 
 ### Session duration
-Heartbeats are automatically sent to track the user session. Mavis [recommends](https://docs.skymavis.com/mavis/app-tracking/reference/milestones#milestone-1-session-duration) sending heartbeats every 30 seconds or less. This library sends heartbeats every 30 seconds by default.
-```typescript
-// To change the frequency of the heartbeats, you can pass the interval in milliseconds in the constructor.
-const tracking = new MavisTracking(API_KEY, { heartbeatInterval: 10000 }); // 10 seconds
-```
-You can disable heartbeats like this:
+Heartbeats are automatically sent to track the user session. You can disable heartbeats like this:
 ```typescript
 const tracking = new MavisTracking(API_KEY, { enableHeartbeat: false });
+```
+This library sends heartbeats every 30 seconds by default. If you want to change the frequency, you can send the desired frequency in milliseconds.
+```typescript
+const tracking = new MavisTracking(API_KEY, { heartbeatInterval: 10_000 }); // 10 seconds
 ```
 TODO: Add more examples
 ## License
