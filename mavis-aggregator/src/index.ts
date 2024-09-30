@@ -26,6 +26,10 @@ app.post('/track', async (c) => {
     }
 });
 
+app.get("/health", (c) => {
+    return c.json({status: "ok"});
+});
+
 eventTracker.startFlushInterval();
 
 export default {
