@@ -199,17 +199,15 @@ export class MavisTracking {
     identify(userId: string,
              roninAddress: string,
              userProperties: IdentifyEvent["data"]["user_properties"],
-             deviceProperties: PlatformProperties | {} = {}
     ): void {
         this.userId = userId;
         this.roninAddress = roninAddress || ADDRESS_ZERO;
-        console.log("AGENT DATA", this.getPlatformData(deviceProperties));
 
         const event: IdentifyEvent = {
             type: 'identify',
             data: {
                 ...this.createBaseEvent().data,
-                ...this.getPlatformData(deviceProperties),
+                ...this.getPlatformData(),
                 ronin_address: this.roninAddress,
                 user_properties: userProperties
             }
@@ -261,14 +259,13 @@ export class MavisTracking {
         await this.flush();
     }
 
-    private getPlatformData(args: PlatformProperties | {}): PlatformProperties {
+    private getPlatformData(): PlatformProperties {
         return {
             platform_name: this.agentData.os.name ?? 'Unknown',
             platform_version: this.agentData.os.version,
             device_name: this.agentData.device.model,
             device_id: this.agentData.device.type!,
             build_version: this.agentData.browser.version,
-            ...args,
         };
     }
 }
