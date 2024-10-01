@@ -1,7 +1,7 @@
 import {Hono} from 'hono'
+import {cors} from 'hono/cors'
 import {Event} from "./types";
 import EventTracker from "./EventTracker";
-import {cors} from "hono/dist/types/middleware/cors";
 
 type TrackEventBody = {
     api_key: string;
