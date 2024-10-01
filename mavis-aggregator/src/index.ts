@@ -14,6 +14,7 @@ app.use('*', async (c, next) => {
     const envVars = c.env as { CORS_ORIGIN?: string };
     const corsMiddlewareHandler = cors({
         origin: envVars.CORS_ORIGIN?.split(",") ?? '*',
+        credentials: true,
     });
     return corsMiddlewareHandler(c, next);
 });
