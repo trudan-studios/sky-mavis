@@ -1,6 +1,7 @@
 import {Hono} from 'hono'
 import {Event} from "./types";
 import EventTracker from "./EventTracker";
+import {cors} from "hono/dist/types/middleware/cors";
 
 type TrackEventBody = {
     api_key: string;
@@ -8,6 +9,14 @@ type TrackEventBody = {
 }
 const app = new Hono();
 const eventTracker = new EventTracker();
+
+app.use('*', async (c, next) => {
+    const envVars = c.env as { CORS_ORIGIN?: string };
+    const corsMiddlewareHandler = cors({
+        origin: envVars.CORS_ORIGIN?.split(",") ?? '*',
+    });
+    return corsMiddlewareHandler(c, next);
+});
 
 app.post('/track', async (c) => {
     const body = await c.req.json<TrackEventBody>();
