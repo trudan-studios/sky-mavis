@@ -1,4 +1,5 @@
 import {v4 as uuidv4} from 'uuid';
+import UAParser from "ua-parser-js";
 
 const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
 type MavisEventType = 'identify' | 'screen' | 'track';
@@ -76,6 +77,7 @@ export class MavisTracking {
     private heartbeatIntervalId: ReturnType<typeof setInterval> | null;
     private userId: string | null;
     private roninAddress: string;
+    private readonly agentData: UAParser.IResult = new UAParser().getResult();
 
     constructor(apiKey: string, options: MavisTrackingOptions = {}) {
         this.apiKey = apiKey;
@@ -159,6 +161,8 @@ export class MavisTracking {
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+        } else {
+            console.log('Events sent successfully:', await response.json())
         }
     }
 
@@ -195,16 +199,17 @@ export class MavisTracking {
     identify(userId: string,
              roninAddress: string,
              userProperties: IdentifyEvent["data"]["user_properties"],
-             deviceProperties: PlatformProperties = {platform_name: "unknown"}
+             deviceProperties: PlatformProperties | {} = {}
     ): void {
         this.userId = userId;
         this.roninAddress = roninAddress || ADDRESS_ZERO;
+        console.log("AGENT DATA", this.getPlatformData(deviceProperties));
 
         const event: IdentifyEvent = {
             type: 'identify',
             data: {
                 ...this.createBaseEvent().data,
-                ...deviceProperties,
+                ...this.getPlatformData(deviceProperties),
                 ronin_address: this.roninAddress,
                 user_properties: userProperties
             }
@@ -226,7 +231,6 @@ export class MavisTracking {
     }
 
     track(action: string, actionProperties?: TrackEvent["data"]["action_properties"]): void {
-        console.log('Tracking action:', action, actionProperties);
         const event: TrackEvent = {
             ...this.createBaseEvent(),
             type: 'track',
@@ -255,6 +259,17 @@ export class MavisTracking {
             clearInterval(this.heartbeatIntervalId);
         }
         await this.flush();
+    }
+
+    private getPlatformData(args: PlatformProperties | {}): PlatformProperties {
+        return {
+            platform_name: this.agentData.os.name ?? 'Unknown',
+            platform_version: this.agentData.os.version,
+            device_name: this.agentData.device.model,
+            device_id: this.agentData.device.type!,
+            build_version: this.agentData.browser.version,
+            ...args,
+        };
     }
 }
 

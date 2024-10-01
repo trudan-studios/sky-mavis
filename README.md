@@ -15,8 +15,10 @@ Now you're ready to start sending events to the server. But first you need to id
 ### Identifying the user
 ```typescript
 tracking.identify("user_id", "ronin_address", { key: "value" });
-// you can also add a fourth parameter for platform properties
-tracking.identify("user_id", "ronin_address", { username: "JohnDoe" }, { platform_name: "Firefox" });
+````
+This library will try to get the platform and device information automatically. If you want to provide this information manually, you can do it like this:
+```typescript
+tracking.identify("user_id", "ronin_address", { key: "value"}, { platform_name: "Firefox" });
 ````
 
 ### Sending events
