@@ -11,7 +11,7 @@ const app = new Hono();
 const eventTracker = new EventTracker();
 
 app.use('*', async (c, next) => {
-    const envVars = c.env as { CORS_ORIGIN?: string };
+    const envVars = process.env as { CORS_ORIGIN?: string };
     const corsMiddlewareHandler = cors({
         origin: envVars.CORS_ORIGIN?.split(",") ?? '*',
         credentials: true,
