@@ -161,8 +161,6 @@ export class MavisTracking {
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
-        } else {
-            console.log('Events sent successfully:', await response.json())
         }
     }
 
